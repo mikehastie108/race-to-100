@@ -1,142 +1,17 @@
-<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Race to 100</title><style>
-*{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:#0b1020;color:#fff}button{font:inherit}.screen{min-height:100vh;padding:28px}.setup{display:grid;place-items:center;text-align:center}.card{background:#151d34;border:1px solid #2c3857;border-radius:24px;padding:40px;max-width:700px;width:100%;box-shadow:0 20px 60px #0006}.choices{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin:28px 0}.choice,.primary,.answer{border:0;border-radius:14px;padding:16px 24px;cursor:pointer;background:#263352;color:white;font-weight:800}.choice:hover,.answer:hover{transform:translateY(-2px);background:#33436b}.primary{background:#f5b73b;color:#101522;font-size:20px}.names{display:grid;gap:12px;margin:20px 0}.names input{padding:14px;border-radius:12px;border:1px solid #3b4868;background:#0e1527;color:#fff;font-size:17px}.game{max-width:1500px;margin:auto}.top{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:18px}.title{font-size:28px;font-weight:900}.turn{padding:10px 15px;border-radius:12px;background:#1c2844}.columns{display:grid;gap:12px;grid-template-columns:repeat(var(--players),1fr);margin-bottom:18px}.lane{background:#11192d;border:1px solid #293652;border-radius:18px;padding:12px;position:relative}.lane.active{outline:3px solid #f5b73b}.lanehead{display:flex;align-items:center;gap:10px}.avatar{font-size:32px}.pname{font-weight:900}.score{margin-left:auto;font-size:22px}.track{display:grid;grid-template-columns:repeat(10,1fr);gap:3px;margin-top:10px}.cell{height:14px;border-radius:3px;opacity:.2;transition:.25s}.red{background:#ef4444}.orange{background:#f97316}.yellow{background:#eab308}.green{background:#22c55e}.cell.lit{opacity:1;box-shadow:0 0 8px currentColor}.cell.current{transform:scaleY(1.7);box-shadow:0 0 14px #fff}.console{background:#151d34;border:1px solid #2c3857;border-radius:24px;padding:24px;display:grid;grid-template-columns:230px 1fr;gap:24px}.dicebox{text-align:center;background:#0e1527;border-radius:18px;padding:20px}.dice{font-size:80px;line-height:1;margin:15px}.roll{width:100%;background:#f5b73b;color:#101522;border:0;border-radius:14px;padding:15px;font-weight:900;cursor:pointer}.roll:disabled{opacity:.5}.qbox{min-height:310px}.meta{display:flex;gap:10px;align-items:center}.tag{background:#273454;border-radius:20px;padding:7px 12px;font-size:13px}.tag:nth-child(2){background:#3b2d54;color:#f0d7ff}.timer{margin-left:auto;font-size:24px;font-weight:900}.question{font-size:27px;font-weight:900;margin:20px 0}.answers{display:grid;grid-template-columns:1fr 1fr;gap:12px}.answer{background:#253352;text-align:left}.answer.correct{background:#16a34a}.answer.wrong{background:#dc2626}.feedback{height:30px;margin-top:15px;font-weight:900}.rules{margin-top:16px;color:#aeb9d3;font-size:13px}.hide{display:none}.winner{font-size:40px;text-align:center;margin-top:20px}.riddle{background:#201b38;border:1px solid #5b4c86;border-radius:18px;padding:20px;margin-top:15px}.riddle input{width:100%;padding:14px;border-radius:12px;border:1px solid #51456f;background:#0e1527;color:#fff;margin:10px 0}.small{color:#aeb9d3;font-size:14px}@media(max-width:800px){.console{grid-template-columns:1fr}.answers{grid-template-columns:1fr}.columns{grid-template-columns:repeat(2,1fr)!important}.screen{padding:12px}.question{font-size:21px}}
-</style></head><body><div id='app'></div><script>
-const Q = [
-// Geography
-['Geography','easy','What is the capital of Australia?',['Sydney','Canberra','Melbourne','Perth'],1],
-['Geography','easy','Which is the largest ocean on Earth?',['Atlantic Ocean','Indian Ocean','Pacific Ocean','Arctic Ocean'],2],
-['Geography','easy','Which country is famous for the pyramids of Giza?',['Mexico','Egypt','Greece','India'],1],
-['Geography','medium','Which river flows through London?',['Seine','Danube','Thames','Tiber'],2],
-['Geography','medium','What is the smallest independent country in the world by area?',['Monaco','Malta','Vatican City','San Marino'],2],
-['Geography','medium','Mount Kilimanjaro is in which country?',['Kenya','Tanzania','Uganda','Ethiopia'],1],
-['Geography','hard','Which country has the most natural lakes?',['Canada','Finland','Russia','Sweden'],0],
-['Geography','hard','Which strait separates Spain from Morocco?',['Bering Strait','Strait of Gibraltar','Bosporus','Dover Strait'],1],
-// Sport
-['Sport','easy','How many players from one soccer team are on the field at the start of a match?',['9','10','11','12'],2],
-['Sport','easy','In tennis, what word means a score of zero?',['Nil','Love','Blank','Duck'],1],
-['Sport','easy','How many rings are on the Olympic symbol?',['Four','Five','Six','Seven'],1],
-['Sport','medium','Which country won the first men’s FIFA World Cup in 1930?',['Brazil','Italy','Uruguay','Argentina'],2],
-['Sport','medium','In cricket, how many legal deliveries are in a standard over?',['Four','Five','Six','Eight'],2],
-['Sport','medium','Which athletics event combines running, jumping and throwing across ten events?',['Decathlon','Pentathlon','Triathlon','Heptathlon'],0],
-['Sport','hard','In rugby union, how many points is a try worth under current standard scoring?',['3','4','5','6'],2],
-['Sport','hard','Which Grand Slam tennis tournament is played on clay?',['Australian Open','Wimbledon','US Open','French Open'],3],
-// History
-['History','easy','Who was the first person to walk on the Moon?',['Buzz Aldrin','Neil Armstrong','Yuri Gagarin','John Glenn'],1],
-['History','easy','The ancient pyramids at Giza were built by which civilisation?',['Romans','Ancient Egyptians','Vikings','Aztecs'],1],
-['History','easy','The Berlin Wall fell in which year?',['1979','1985','1989','1995'],2],
-['History','medium','Who was South Africa’s first democratically elected president?',['Thabo Mbeki','Nelson Mandela','F. W. de Klerk','Oliver Tambo'],1],
-['History','medium','Which ship famously sank on its maiden voyage in 1912?',['Lusitania','Titanic','Bismarck','Endeavour'],1],
-['History','medium','The Magna Carta was first issued in which country?',['France','England','Spain','Portugal'],1],
-['History','hard','Which civilisation developed the writing system known as cuneiform?',['Sumerians','Incas','Phoenicians','Minoans'],0],
-['History','hard','In which year did the French Revolution begin?',['1776','1789','1815','1848'],1],
-// Maths & logic
-['Maths','easy','What is 12 × 8?',['86','96','108','112'],1],
-['Maths','easy','What is half of 3/4?',['3/8','1/2','2/3','1/4'],0],
-['Maths','easy','How many sides does a hexagon have?',['Five','Six','Seven','Eight'],1],
-['Maths','medium','What is 15% of 200?',['15','20','30','35'],2],
-['Maths','medium','A train travels 60 km in one hour. How far does it travel in 2.5 hours at the same speed?',['120 km','140 km','150 km','180 km'],2],
-['Maths','medium','What is the next number: 2, 6, 12, 20, 30, …?',['36','40','42','44'],2],
-['Maths','hard','A fair six-sided die is rolled twice. What is the probability of getting two sixes?',['1/6','1/12','1/18','1/36'],3],
-['Maths','hard','If a product costs R800 after a 20% discount, what was its original price?',['R900','R960','R1,000','R1,200'],2],
-// Science
-['Science','easy','Which planet is known as the Red Planet?',['Venus','Mars','Jupiter','Mercury'],1],
-['Science','easy','At sea level, pure water boils at what temperature?',['90°C','95°C','100°C','110°C'],2],
-['Science','easy','What force pulls objects towards Earth?',['Magnetism','Gravity','Friction','Pressure'],1],
-['Science','medium','What is the chemical symbol for gold?',['Go','Gd','Au','Ag'],2],
-['Science','medium','Which gas do plants absorb during photosynthesis?',['Oxygen','Nitrogen','Carbon dioxide','Hydrogen'],2],
-['Science','medium','What is the centre of an atom called?',['Electron','Nucleus','Cell','Proton cloud'],1],
-['Science','hard','Which particles have a negative electric charge?',['Protons','Neutrons','Electrons','Photons'],2],
-['Science','hard','What is the approximate speed of light in a vacuum?',['30,000 km/s','150,000 km/s','300,000 km/s','3,000,000 km/s'],2],
-// Biology & body
-['Biology','easy','Which organ pumps blood around the body?',['Liver','Lungs','Heart','Kidneys'],2],
-['Biology','easy','How many legs does an adult insect have?',['Four','Six','Eight','Ten'],1],
-['Biology','easy','Which part of a plant usually absorbs water from the soil?',['Flowers','Leaves','Roots','Fruit'],2],
-['Biology','medium','What is the largest organ of the human body?',['Liver','Skin','Brain','Lungs'],1],
-['Biology','medium','Which blood cells help the body fight infection?',['Red blood cells','White blood cells','Platelets','Plasma cells only'],1],
-['Biology','medium','What is the process by which a caterpillar becomes a butterfly called?',['Fermentation','Metamorphosis','Pollination','Germination'],1],
-['Biology','hard','Which molecule carries genetic instructions in most living organisms?',['ATP','DNA','Insulin','Collagen'],1],
-['Biology','hard','What is the name of the tiny air sacs in the lungs where gas exchange occurs?',['Nephrons','Alveoli','Villi','Bronchioles'],1],
-// Music & entertainment
-['Music','easy','Which instrument traditionally has 88 keys?',['Guitar','Piano','Violin','Trumpet'],1],
-['Music','easy','How many strings does a standard violin have?',['Four','Five','Six','Eight'],0],
-['Entertainment','easy','Which actor played Jack in the film Titanic (1997)?',['Brad Pitt','Leonardo DiCaprio','Tom Hanks','Matt Damon'],1],
-['Music','medium','Which singer was known as the “Queen of Soul”?',['Diana Ross','Aretha Franklin','Tina Turner','Whitney Houston'],1],
-['Entertainment','medium','What is the name of the fictional school in the Harry Potter series?',['Rivendell','Hogwarts','Narnia Academy','Nevermore'],1],
-['Music','medium','Which band released the album Abbey Road?',['The Rolling Stones','Queen','The Beatles','Pink Floyd'],2],
-['Entertainment','hard','Who directed the film Jaws (1975)?',['George Lucas','Steven Spielberg','Francis Ford Coppola','Martin Scorsese'],1],
-['Music','hard','Which composer wrote the opera The Magic Flute?',['Beethoven','Mozart','Chopin','Bach'],1],
-// Famous people
-['Famous People','easy','Who painted the Mona Lisa?',['Vincent van Gogh','Pablo Picasso','Leonardo da Vinci','Claude Monet'],2],
-['Famous People','easy','Who is associated with the theory of relativity?',['Isaac Newton','Albert Einstein','Galileo Galilei','Charles Darwin'],1],
-['Famous People','easy','Who wrote Romeo and Juliet?',['Charles Dickens','William Shakespeare','Jane Austen','Oscar Wilde'],1],
-['Famous People','medium','Who co-founded Microsoft with Bill Gates?',['Steve Wozniak','Paul Allen','Steve Jobs','Larry Page'],1],
-['Famous People','medium','Which South African activist became president in 1994?',['Desmond Tutu','Nelson Mandela','Steve Biko','Chris Hani'],1],
-['Famous People','medium','Who is credited with discovering penicillin in 1928?',['Louis Pasteur','Alexander Fleming','Marie Curie','Joseph Lister'],1],
-['Famous People','hard','Who was the first woman to win a Nobel Prize?',['Ada Lovelace','Marie Curie','Rosalind Franklin','Jane Addams'],1],
-['Famous People','hard','Which mathematician is known for the incompleteness theorems?',['Alan Turing','Kurt Gödel','Blaise Pascal','Euclid'],1],
-// Politics & civics
-['Civics','easy','In a democracy, what is a general election primarily used for?',['Choosing representatives','Appointing judges directly everywhere','Selecting sports teams','Setting the weather'],0],
-['Civics','easy','What is the minimum voting age for national elections in South Africa?',['16','17','18','21'],2],
-['Civics','medium','What is the main role of a constitution?',['List every citizen’s hobbies','Set out fundamental rules and rights of a state','Control the weather','Replace all laws with customs'],1],
-['Civics','medium','How many traditional branches of government are commonly described?',['Two','Three','Four','Five'],1],
-['Civics','medium','Which organisation is responsible for international public health coordination within the UN system?',['WHO','WTO','FIFA','OPEC'],0],
-['Civics','hard','What does “GDP” stand for in economics?',['General Development Plan','Gross Domestic Product','Global Debt Percentage','Government Distribution Policy'],1],
-// Everyday / safety
-['Everyday Knowledge','easy','What does a red traffic light mean?',['Proceed carefully','Stop','Speed up','Give way only'],1],
-['Everyday Knowledge','easy','Which number should you generally use to call emergency services from a mobile phone in South Africa?',['10111 only','112','911 only','123'],1],
-['Everyday Knowledge','easy','What should you do first if a pan of cooking oil catches fire?',['Pour water on it','Carry it outside','Turn off the heat if safe and cover it with a lid','Fan the flames'],2],
-['Everyday Knowledge','medium','In a modern South African plug, what colour is the earth wire generally?',['Brown','Blue','Green and yellow','Grey'],2],
-['Everyday Knowledge','medium','Why should bleach never be mixed with ammonia-based cleaners?',['It becomes harmless','It can release toxic gases','It freezes instantly','It loses its colour only'],1],
-['Everyday Knowledge','medium','What does the recycling symbol of three chasing arrows generally indicate?',['A guaranteed recyclable item in every council','A recycling-related material or process','The item is sterile','The item is compostable'],1],
-['Everyday Knowledge','hard','What does the acronym CPR stand for?',['Cardiac Pressure Recovery','Cardiopulmonary Resuscitation','Controlled Pulse Response','Circulatory Pressure Reset'],1],
-['Everyday Knowledge','hard','Which extinguisher type is generally suitable for a live electrical fire when rated for electrical equipment?',['Water jet','Suitable CO₂ extinguisher','Cooking oil','Unrated garden hose'],1],
-// South Africa
-['South Africa','easy','What is the administrative capital of South Africa where the Union Buildings are located?',['Cape Town','Pretoria','Bloemfontein','Johannesburg'],1],
-['South Africa','easy','What is South Africa’s national currency?',['Pula','Rand','Shilling','Kwacha'],1],
-['South Africa','easy','Which ocean lies along Cape Town’s Atlantic Seaboard?',['Indian Ocean','Atlantic Ocean','Southern Ocean only','Pacific Ocean'],1],
-['South Africa','medium','What is the name of South Africa’s famous flat-topped mountain overlooking Cape Town?',['Lion’s Head','Table Mountain','Signal Hill','Devil’s Peak'],1],
-['South Africa','medium','Which province is home to the Kruger National Park’s largest portion?',['Limpopo and Mpumalanga','Western Cape','Eastern Cape only','Free State'],0],
-['South Africa','medium','How many official languages does South Africa have under its current Constitution?',['9','10','11','12'],2],
-['South Africa','hard','What is the name of the current South African Constitution’s founding document adopted in 1996?',['The Union Act','The Constitution of the Republic of South Africa, 1996','The Freedom Charter alone','The Bill of Union'],1],
-['South Africa','hard','Which pass links the interior near the Karoo with the Garden Route region via the Outeniqua Mountains?',['Chapman’s Peak Drive','Outeniqua Pass','Van Reenen’s Pass','Sani Pass'],1],
-// Nature & animals
-['Nature','easy','What is the fastest land animal?',['Lion','Cheetah','Horse','Leopard'],1],
-['Nature','easy','What do bees collect from flowers to help make honey?',['Sap and bark','Nectar','Soil','Tree roots'],1],
-['Nature','medium','What is a group of lions commonly called?',['Pack','Pride','Herd','Colony'],1],
-['Nature','medium','Which mammal is capable of true sustained flight?',['Flying squirrel','Bat','Sugar glider','Colugo'],1],
-['Nature','hard','What is the term for animals that are most active at dawn and dusk?',['Nocturnal','Diurnal','Crepuscular','Arboreal'],2],
-['Nature','hard','Which biome is characterised by permafrost and very low-growing vegetation?',['Savanna','Tundra','Mediterranean scrub','Tropical rainforest'],1],
-// Food & interesting facts
-['Food & Facts','easy','Which vitamin can the human body produce in skin in response to sunlight?',['Vitamin A','Vitamin C','Vitamin D','Vitamin K'],2],
-['Food & Facts','easy','How many days are there in a leap year?',['364','365','366','367'],2],
-['Food & Facts','medium','Which spice is traditionally made from the dried stigmas of a crocus flower?',['Turmeric','Saffron','Paprika','Cinnamon'],1],
-['Food & Facts','medium','Which fruit is botanically a berry: banana or strawberry?',['Strawberry only','Banana','Both are not berries','Neither'],1],
-['Food & Facts','hard','What is the main ingredient in traditional hummus?',['Lentils','Chickpeas','Kidney beans','Peas'],1],
-['Food & Facts','hard','Which element gives many fireworks their red colour?',['Strontium','Sodium','Copper','Magnesium'],0],
-// Technology
-['Technology','easy','What does “www” stand for in a website address?',['World Wide Web','Web Wire Window','Wide World Watch','World Web Window'],0],
-['Technology','easy','Which device is primarily used to move a pointer on a desktop computer?',['Router','Mouse','Microphone','Scanner'],1],
-['Technology','medium','What does GPS stand for?',['Global Positioning System','General Place Signal','Geographic Phone Service','Global Path Software'],0],
-['Technology','medium','Which type of code is commonly used to store information in a square, scannable pattern?',['QR code','ZIP code','HTML tag','PIN code'],0],
-['Technology','hard','What does “phishing” usually attempt to do?',['Improve Wi-Fi speed','Trick people into revealing sensitive information','Cool down a computer','Compress photos'],1],
-['Technology','hard','Which unit is commonly used to measure computer processor clock frequency?',['Volt','Hertz','Lumen','Pascal'],1]
-];
-const R=[['I have cities but no houses, forests but no trees, and water but no fish. What am I?','map'],['What has hands but cannot clap?','clock'],['The more you take, the more you leave behind. What are they?','footsteps']];
-let state={players:[],turn:0,score:[],roll:null,qs:[],qi:0,correct:0,wrong:0,locked:false,riddle:null,used:new Set(),lastCategory:null,riddleDone:[],riddleResolved:false};
-function setup(){app.innerHTML=`<div class='screen setup'><div class='card'><div style='font-size:52px'>🏁</div><h1>RACE TO 100</h1><p class='small'>General Knowledge • Pressure • Strategy • First to 100 wins</p><h2>How many players?</h2><div class='choices'>${[2,3,4].map(n=>`<button class='choice' onclick='names(${n})'>${n} Players</button>`).join('')}</div></div></div>`}
-function names(n){app.innerHTML=`<div class='screen setup'><div class='card'><h1>PLAYER SETUP</h1><p class='small'>Choose a name for each player.</p><div class='names'>${Array.from({length:n},(_,i)=>`<input id='n${i}' placeholder='Player ${i+1}' value='Player ${i+1}'>`).join('')}</div><button class='primary' onclick='start(${n})'>START GAME →</button></div></div>`}
-function start(n){state.players=Array.from({length:n},(_,i)=>document.getElementById('n'+i).value.trim()||`Player ${i+1}`);state.score=Array(n).fill(0);state.turn=0;state.used=new Set();state.lastCategory=null;state.riddleDone=Array.from({length:n},()=>new Set());state.riddleResolved=false;renderGame()}
-function renderGame(){app.innerHTML=`<div class='screen'><div class='game'><div class='top'><div class='title'>🏁 RACE TO 100</div><div class='turn'>Turn: <b id='turnName'></b></div></div><div class='columns' style='--players:${state.players.length}'>${state.players.map((p,i)=>lane(i,p)).join('')}</div><div class='console'><div class='dicebox'><div id='activeAvatar' class='avatar' style='font-size:55px'></div><h2 id='activeName'></h2><div class='dice' id='dice'>🎲</div><button id='rollBtn' class='roll' onclick='rollDice()'>ROLL DICE</button><div class='rules'>Roll the dice. Answer that many questions.<br><br><b>${Q.length} built-in questions</b> across 14 categories; no repeats until the bank is exhausted.<br><br>All correct = +1 bonus space<br>No correct = −3 spaces<br>After 50, each wrong answer = −1 space</div></div><div class='qbox' id='qbox'><h2>Ready?</h2><p class='small'>Roll the dice to start your turn.</p></div></div><div id='winner'></div></div></div>`;updateLanes();setActive()}
-function lane(i,p){let cells='';for(let x=1;x<=100;x++){let c=x<=25?'red':x<=50?'orange':x<=75?'yellow':'green';cells+=`<div id='c-${i}-${x}' class='cell ${c}'></div>`}return `<div class='lane' id='lane-${i}'><div class='lanehead'><span class='avatar'>${['🧑‍🚀','🦊','🐼','🦁'][i]}</span><span class='pname'>${esc(p)}</span><span class='score' id='score-${i}'>0</span></div><div class='track'>${cells}</div></div>`}
-function updateLanes(){state.score.forEach((s,i)=>{document.getElementById('score-'+i).textContent=s;for(let x=1;x<=100;x++){let el=document.getElementById(`c-${i}-${x}`);el.classList.toggle('lit',x<=s);el.classList.toggle('current',x===s&&s>0)}})}
-function setActive(){document.querySelectorAll('.lane').forEach((e,i)=>e.classList.toggle('active',i===state.turn));document.getElementById('turnName').textContent=state.players[state.turn];document.getElementById('activeName').textContent=state.players[state.turn];document.getElementById('activeAvatar').textContent=['🧑‍🚀','🦊','🐼','🦁'][state.turn]}
-function rollDice(){if(state.locked)return;let d=Math.floor(Math.random()*6)+1;state.roll=d;state.qi=0;state.correct=0;state.wrong=0;document.getElementById('dice').textContent=['⚀','⚁','⚂','⚃','⚄','⚅'][d-1];document.getElementById('rollBtn').disabled=true;state.qs=[];for(let i=0;i<d;i++){let band=state.score[state.turn]<25?'easy':state.score[state.turn]<50?'medium':state.score[state.turn]<75?'hard':'hard';let pool=Q.filter((q,idx)=>!state.used.has(idx)&&q[1]===band&&q[0]!==state.lastCategory);if(!pool.length)pool=Q.filter((q,idx)=>!state.used.has(idx)&&q[0]!==state.lastCategory);if(!pool.length)pool=Q.filter((q,idx)=>!state.used.has(idx));if(!pool.length){state.used.clear();pool=Q.filter(q=>q[0]!==state.lastCategory);if(!pool.length)pool=Q.slice()}let q=pool[Math.floor(Math.random()*pool.length)],idx=Q.indexOf(q);state.used.add(idx);state.lastCategory=q[0];state.qs.push(q)}showQuestion()}
-let timer;
-function showQuestion(){clearInterval(timer);if(state.qi>=state.qs.length){finishTurn();return}let q=state.qs[state.qi],left=10;state.locked=false;document.getElementById('qbox').innerHTML=`<div class='meta'><span class='tag'>${q[0]}</span><span class='tag'>${q[1].toUpperCase()}</span><span>Question ${state.qi+1} of ${state.roll}</span><span class='timer' id='timer'>10</span></div><div class='question'>${q[2]}</div><div class='answers'>${q[3].map((a,i)=>`<button class='answer' onclick='answer(${i})'>${a}</button>`).join('')}</div><div class='feedback' id='feedback'></div>`;timer=setInterval(()=>{left--;document.getElementById('timer').textContent=left;if(left<=0){clearInterval(timer);answer(-1)}},1000)}
-function answer(i){if(state.locked)return;state.locked=true;clearInterval(timer);let q=state.qs[state.qi],ok=i===q[4];if(ok)state.correct++;else state.wrong++;document.querySelectorAll('.answer').forEach((b,k)=>{b.disabled=true;if(k===q[4])b.classList.add('correct');if(k===i&&!ok)b.classList.add('wrong')});document.getElementById('feedback').textContent=i===-1?'TIME!':ok?'CORRECT!':'WRONG!';setTimeout(()=>{state.qi++;showQuestion()},650)}
-function finishTurn(){let delta=state.correct===state.roll?1:state.correct===0?-3:0;if(state.score[state.turn]>=50)delta-=state.wrong;let old=state.score[state.turn],next=Math.max(0,Math.min(100,old+state.correct+delta));state.score[state.turn]=next;updateLanes();if(next>=100){document.getElementById('winner').innerHTML=`<div class='winner'>🏆 ${esc(state.players[state.turn])} WINS! 🏆</div>`;document.getElementById('rollBtn').disabled=true;document.getElementById('winner').innerHTML+=`<p><button class='primary' onclick='setup()'>NEW GAME</button></p>`;return}let crossed=[25,50,75].find(x=>old<x&&next>=x&&!state.riddleDone[state.turn].has(x));if(crossed){state.riddleDone[state.turn].add(crossed);showRiddle(crossed);return}document.getElementById('qbox').innerHTML=`<h2>Turn complete</h2><p class='small'>${state.correct}/${state.roll} correct. Moving to the next player…</p>`;setTimeout(nextTurn,900)}
-function showRiddle(mark){state.riddleResolved=false;let r=R[Math.floor(Math.random()*R.length)];let left=180;document.getElementById('qbox').innerHTML=`<div class='riddle'><div class='meta'><span class='tag'>RIDDLE CHECKPOINT — ${mark}</span><span class='timer' id='rtimer'>180</span></div><h2>${r[0]}</h2><input id='rinput' placeholder='Type your answer…' autocomplete='off'><button class='primary' onclick='submitRiddle()'>SUBMIT ANSWER</button><div class='feedback' id='rfeed'></div></div>`;state.riddle=r;timer=setInterval(()=>{left--;document.getElementById('rtimer').textContent=left;if(left<=0){clearInterval(timer);riddleResult(false)}},1000)}
-function submitRiddle(){if(state.riddleResolved)return;let a=document.getElementById('rinput').value.trim().toLowerCase();riddleResult(a===state.riddle[1])}function riddleResult(ok){if(state.riddleResolved)return;state.riddleResolved=true;clearInterval(timer);let f=document.getElementById('rfeed');f.textContent=ok?'RIDDLE SOLVED!':'RIDDLE FAILED — BACK 5';if(!ok)state.score[state.turn]=Math.max(0,state.score[state.turn]-5);updateLanes();setTimeout(nextTurn,900)}
-function nextTurn(){state.turn=(state.turn+1)%state.players.length;state.roll=null;state.locked=false;setActive();document.getElementById('rollBtn').disabled=false;document.getElementById('dice').textContent='🎲';document.getElementById('qbox').innerHTML=`<h2>${esc(state.players[state.turn])}'s turn</h2><p class='small'>Roll the dice to begin.</p>`}
-function esc(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}setup();
-</script></body></html>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Whizz</title>
+  <meta http-equiv="refresh" content="0; url=/race_to_100_game_show_countdown.html">
+  <script>
+    window.location.replace("/race_to_100_game_show_countdown.html");
+  </script>
+</head>
+<body>
+  <p>Loading Quiz Whizz...</p>
+  <p><a href="/race_to_100_game_show_countdown.html">Click here to play</a></p>
+</body>
+</html>
