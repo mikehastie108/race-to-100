@@ -53,6 +53,7 @@ async function act(action,answer){
   if(action==='roll'){
    animating=true;
    $('roll').classList.add('hidden');
+   $('roll').disabled=true;
    $('phaseLabel').textContent='🎲 DICE ROLL';
    $('status').textContent='Rolling the dice…';
    $('question').innerHTML=showDie(1,true);
@@ -79,9 +80,20 @@ async function act(action,answer){
    render(s);
   }
  }catch(e){animating=false;await refresh(true);error(new Error('Dice roll could not be completed: '+(e?.message||String(e))+' — please try again.'))}
- finally{if(cycle)clearInterval(cycle);animating=false;busy=false}
+ finally{if(cycle)clearInterval(cycle);animating=false;busy=false;$('roll').disabled=false}
 }
-async function refresh(force=false){if(!session||animating||(busy&&!force))return;try{const l=await api('game-lobby',{...session,action:'state'});if(l.room.status==='waiting')return renderLobby(l);const s=await api('game-play',{...session,action:'state'});render(s);$('error').textContent=''}catch(e){error(e)}}
+async function refresh(force=false){
+ if(!session||animating||(busy&&!force))return;
+ try{
+  const l=await api('game-lobby',{...session,action:'state'});
+  // A poll begun before the dice was clicked must never redraw the old Roll button.
+  if(!session||animating||(busy&&!force))return;
+  if(l.room.status==='waiting')return renderLobby(l);
+  const s=await api('game-play',{...session,action:'state'});
+  if(!session||animating||(busy&&!force))return;
+  render(s);$('error').textContent='';
+ }catch(e){if(!animating)error(e)}
+}
 function drawPlayers(players,active){const icons=['🦁','🦊','🐼','🐯'];$('players').innerHTML=players.map((p,i)=>{const pos=p.position??0;return `<div class="racer ${p.id===active?'active':''}"><div class="racerhead"><div class="who"><span class="avatar">${icons[i%4]}</span>${safe(p.name??p.player_name)} ${p.id===active?'🎯':''}</div><div class="score">${pos}<small> / 100</small></div></div><div class="bar" aria-label="${pos} of 100 spaces">${Array.from({length:100},(_,j)=>`<span class="step ${j<pos?'filled':''} ${j===pos-1&&pos>0?'current':''}"></span>`).join('')}</div><div class="markers"><span>START</span><span>25 🧩</span><span>50 🧩</span><span>75 🧩</span><span>🏆 100</span></div></div>`}).join('')}
 function resetStage(){deadline=null;$('timer').textContent='';$('timer').classList.remove('danger');$('timer').style.setProperty('--angle','360deg');$('question').innerHTML='';$('options').innerHTML='';$('feedback').innerHTML='';$('roll').classList.add('hidden');$('start').classList.add('hidden')}
 function renderLobby(l){phase='lobby';drawPlayers(l.players,null);resetStage();$('gameStatus').textContent='● Waiting for players';$('phaseLabel').textContent='PLAYER LOBBY';$('status').textContent=`${l.players.length} of 4 players ready`;$('question').innerHTML='<div class="dice">🎟️</div><p class="hint">Share the room code with your friends. When everyone has joined, the host can start the show.</p>';$('start').classList.toggle('hidden',!session.hostToken);$('start').disabled=l.players.length<2}
