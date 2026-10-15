@@ -3,7 +3,7 @@
  
 .dice-arena{display:grid;place-items:center;gap:10px;text-align:center;padding:12px 0}
 .die3d{width:108px;height:108px;border-radius:22px;background:linear-gradient(145deg,#fff,#dce7ff);box-shadow:inset -9px -9px 16px #9baac6, inset 5px 5px 12px #fff,0 13px 0 #6b7896,0 22px 34px #0008;display:grid;place-items:center;color:#17294b;font-size:74px;font-weight:950;line-height:1;transform-style:preserve-3d}
-.die3d.rolling{animation:die-tumble .55s infinite ease-in-out}
+.die3d.rolling{animation:die-tumble .7s infinite cubic-bezier(.45,.05,.55,.95)}
 @keyframes die-tumble{0%{transform:rotateX(0) rotateY(0) rotateZ(0) scale(.92)}50%{transform:rotateX(190deg) rotateY(120deg) rotateZ(35deg) scale(1.08)}100%{transform:rotateX(360deg) rotateY(360deg) rotateZ(90deg) scale(.92)}}
 .roll-result{font-size:23px;font-weight:1000;color:var(--gold)}
 .dice-mini{display:inline-flex;align-items:center;gap:8px;border:1px solid #b48934;background:#46381c;border-radius:10px;padding:7px 11px;color:#ffdc7e;font-weight:850;font-size:14px}
@@ -60,24 +60,25 @@ async function act(action,answer){
    const faceEl=$('question').querySelector('.die3d');
    let frame=0;
    cycle=setInterval(()=>{frame=(frame+1)%6;faceEl.textContent=faces[frame+1];faceEl.setAttribute('aria-label','Rolling dice');},110);
-   // Animate BEFORE the server rolls, so the 10-second question clock
-   // does not start until the animation is almost complete.
-   await sleep(1800);
+   // Roll server-side after the visual spin; do not start the question timer early.
+   await sleep(1300);
    clearInterval(cycle);cycle=null;
+   $('status').textContent='Getting your dice result…';
    const s=await api('game-play',{...session,action,answer});
+   if(s.error)throw Error(s.error);
    const die=s.dice;
-   if(!Number.isInteger(die)||die<1||die>6)throw Error('Could not roll the dice');
+   if(s.phase!=='question'||!Number.isInteger(die)||die<1||die>6)throw Error('The roll did not start a question. Please try again.');
    $('question').innerHTML=showDie(die);
-   $('phaseLabel').textContent='DICE RESULT';
-   $('status').textContent=`${die} question${die===1?'':'s'} this turn`;
-   await sleep(550);
+   $('phaseLabel').textContent='🎲 YOU ROLLED '+die;
+   $('status').textContent=`${die} question${die===1?'':'s'} to answer — starting automatically!`;
+   await sleep(900);
    animating=false;
    render(s);
   }else{
    const s=await api('game-play',{...session,action,answer});
    render(s);
   }
- }catch(e){error(e);animating=false;await refresh(true)}
+ }catch(e){animating=false;await refresh(true);error(new Error('Dice roll could not be completed: '+(e?.message||String(e))+' — please try again.'))}
  finally{if(cycle)clearInterval(cycle);animating=false;busy=false}
 }
 async function refresh(force=false){if(!session||animating||(busy&&!force))return;try{const l=await api('game-lobby',{...session,action:'state'});if(l.room.status==='waiting')return renderLobby(l);const s=await api('game-play',{...session,action:'state'});render(s);$('error').textContent=''}catch(e){error(e)}}
