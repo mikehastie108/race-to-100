@@ -1,13 +1,13 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quiz Whizz</title>
-  <meta http-equiv="refresh" content="0; url=/race_to_100_game_show_countdown.html">
   <script>
-    window.location.replace("/race_to_100_game_show_countdown.html");
+    // Preserve Supabase email verification tokens when forwarding to the game.
+    // Removing the URL fragment here discards the sign-in session.
+    window.location.replace("/race_to_100_game_show_countdown.html" + window.location.search + window.location.hash);
   </script>
 </head>
 <body>
