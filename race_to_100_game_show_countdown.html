@@ -36,7 +36,19 @@ const accountKey='sb_publishable_PxB5TAXT_SD8tdxNrIcMOw_bIJMaNzT';
 const accountStorage='quizwhizz_auth_v1';
 let account=null;
 function accountHeaders(token){return {'apikey':accountKey,'Authorization':'Bearer '+(token||accountKey),'Content-Type':'application/json'}}
-function showAccount(){const el=$('accountStatus');if(!el)return;el.textContent=account?.user?.email?'✅ Signed in: '+account.user.email+' — your guest games still work as normal.':''}
+function accountPlayerName(){
+ if(!account?.user?.email)return '';
+ const fromProfile=account.display_name||account.user.user_metadata?.display_name||account.user.user_metadata?.full_name;
+ if(fromProfile)return String(fromProfile).trim().slice(0,30);
+ const local=account.user.email.split('@')[0].replace(/[._+-]+/g,' ').replace(/\d+$/,'').trim();
+ return (local||'Player').replace(/\b\w/g,ch=>ch.toUpperCase()).slice(0,30);
+}
+function showAccount(){
+ const el=$('accountStatus');if(!el)return;
+ el.textContent=account?.user?.email?'✅ Signed in: '+account.user.email+' · Playing as '+accountPlayerName():'';
+ if(account?.user?.email&&!$('name').value.trim())$('name').value=accountPlayerName();
+ $('name').placeholder=account?.user?.email?'Player name (automatically filled from your account)':'e.g. Mike';
+}
 async function saveAccountName(){
  if(!account?.access_token||!account?.user?.id)return;
  const name=$('name').value.trim();if(!name)return;
@@ -59,7 +71,7 @@ async function accountInit(){
   }
   if(account?.user?.id){
    const response=await fetch(accountApi+'/rest/v1/quiz_player_profiles?select=display_name&user_id=eq.'+encodeURIComponent(account.user.id),{headers:accountHeaders(account.access_token)});
-   if(response.ok){const p=await response.json();if(p[0]?.display_name&&!$('name').value)$('name').value=p[0].display_name}
+   if(response.ok){const p=await response.json();if(p[0]?.display_name){account.display_name=p[0].display_name;$('name').value=p[0].display_name}}
   }
   showAccount();
  }catch(e){$('accountMessage').textContent='Account sign-in could not be restored. You can still play as a guest.'}
@@ -78,7 +90,7 @@ $('registerEmail').onclick=async()=>{
 accountInit();
 
 function enter(s){session=s;sessionStorage.setItem(key,JSON.stringify(s));$('entry').classList.add('hidden');$('game').classList.remove('hidden');$('code').textContent=s.roomCode;refresh();clearInterval(interval);interval=setInterval(refresh,1000)}
-async function make(action){if(busy)return;busy=true;$('error').textContent='';try{const name=$('name').value.trim();if(!name)throw Error('Enter your player name first');const body={action,name};if(action==='join')body.roomCode=$('roomInput').value.trim().toUpperCase();const r=await api('game-lobby',body);if(account?.user?.id)saveAccountName().catch(()=>{});enter({...r,roomCode:r.roomCode||body.roomCode})}catch(e){error(e)}finally{busy=false}}
+async function make(action){if(busy)return;busy=true;$('error').textContent='';try{const name=$('name').value.trim()||accountPlayerName();if(!name)throw Error('Enter your player name first');$('name').value=name;const body={action,name};if(action==='join')body.roomCode=$('roomInput').value.trim().toUpperCase();const r=await api('game-lobby',body);if(account?.user?.id)saveAccountName().catch(()=>{});enter({...r,roomCode:r.roomCode||body.roomCode})}catch(e){error(e)}finally{busy=false}}
 $('create').onclick=()=>make('create');$('join').onclick=()=>make('join');$('leave').onclick=()=>{clearInterval(interval);sessionStorage.removeItem(key);session=null;location.reload()};$('start').onclick=async()=>{if(busy)return;busy=true;try{await api('game-lobby',{...session,action:'start'});await refresh(true)}catch(e){error(e)}finally{busy=false}};$('roll').onclick=()=>act('roll');
 const faces=['','⚀','⚁','⚂','⚃','⚄','⚅'];
 let soundOn=true,lastRevealKey='',audioContext=null;
